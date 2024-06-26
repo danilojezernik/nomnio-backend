@@ -1,9 +1,9 @@
-from fastapi import FastAPI
 import requests
 import uvicorn
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from src import env
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
@@ -18,14 +18,56 @@ app.add_middleware(
 
 
 # API route to fetch weather forecast data at 3-hour intervals over the next 5 days for Maribor.
-@app.get('/weather')
+@app.get('/weather-forecast')
 def get_city_temp():
+    """
+    Fetches weather forecast data for Maribor using OpenWeatherMap API.
+    """
+
     # Constructing the API request URL with coordinates and unit of measurement.
     response = requests.get(
         f'http://api.openweathermap.org/data/2.5/forecast?lat={env.LAT}&lon={env.LON}&units={env.UNIT}&appid={env.API_KEY}')
 
+    # Checking if request was successful (status code 200)
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Failed to fetch weather data")
+
+    # Parsing the API response and returning specific data fields.
+    data = response.json()
+
+    # Extracting the required data fields from each forecast entry
+    weather_forecast = []
+    for item in data.get('list', []):
+        weather_forecast.append({
+            'dt': item['dt'],
+            'temp': item['main']['temp'],
+            'temp_min': item['main']['temp_min'],
+            'temp_max': item['main']['temp_max'],
+            'description': item['weather'][0]['description'],
+            'clouds': item['clouds']['all']
+        })
+
+    return weather_forecast
+
+
+# API route to fetch current weather data for Maribor.
+@app.get('/weather-current')
+def get_forecast():
+    """
+    Fetches current weather data for Maribor using OpenWeatherMap API.
+    """
+
+    # Constructing the API request URL with coordinates and unit of measurement for current weather data.
+    response = requests.get(
+        f'https://api.openweathermap.org/data/2.5/weather?lat={env.LAT}&lon={env.LON}&units={env.UNIT}&appid={env.API_KEY}')
+
+    # Checking if request was successful (status code 200)
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Failed to fetch current weather data")
+
     # Parsing the API response and returning it along with the HTTP status code.
     body = response.json()
+
     return body, response.status_code
 
 
