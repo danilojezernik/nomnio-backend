@@ -40,10 +40,12 @@ def get_city_temp():
     for item in data.get('list', []):
         weather_forecast.append({
             'dt': item['dt'],
+            'dt_txt': item['dt_txt'],
             'temp': item['main']['temp'],
             'temp_min': item['main']['temp_min'],
             'temp_max': item['main']['temp_max'],
             'description': item['weather'][0]['description'],
+            'icon': item['weather'][0]['icon'],
             'clouds': item['clouds']['all']
         })
 
