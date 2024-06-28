@@ -26,30 +26,16 @@ def get_city_temp():
 
     # Constructing the API request URL with coordinates and unit of measurement.
     response = requests.get(
-        f'http://api.openweathermap.org/data/2.5/forecast?lat={env.LAT}&lon={env.LON}&units={env.UNIT}&appid={env.API_KEY}')
+        f'https://api.openweathermap.org/data/2.5/forecast?lat={env.LAT}&lon={env.LON}&units={env.UNIT}&appid={env.API_KEY}')
 
     # Checking if request was successful (status code 200)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Failed to fetch weather data")
 
     # Parsing the API response and returning specific data fields.
-    data = response.json()
+    body = response.json()
 
-    # Extracting the required data fields from each forecast entry
-    weather_forecast = []
-    for item in data.get('list', []):
-        weather_forecast.append({
-            'dt': item['dt'],
-            'dt_txt': item['dt_txt'],
-            'temp': item['main']['temp'],
-            'temp_min': item['main']['temp_min'],
-            'temp_max': item['main']['temp_max'],
-            'description': item['weather'][0]['description'],
-            'icon': item['weather'][0]['icon'],
-            'clouds': item['clouds']['all']
-        })
-
-    return weather_forecast
+    return body, response.status_code
 
 
 # API route to fetch current weather data for Maribor.
